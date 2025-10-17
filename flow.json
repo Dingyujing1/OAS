@@ -1,0 +1,480 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Klaviyo Flow API",
+    "version": "2025-10-15",
+    "description": "The Klaviyo REST API. ",
+    "contact": {
+      "name": "Klaviyo Developer Experience Team",
+      "email": "developers@klaviyo.com",
+      "url": "https://developers.klaviyo.com"
+    },
+    "termsOfService": "https://www.klaviyo.com/legal/api-terms",
+    "license": {
+      "name": "License",
+      "url": "https://www.klaviyo.com/legal"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://a.klaviyo.com",
+      "description": "Production"
+    }
+  ],
+  "paths": {
+    "/api/flows": {
+      "get": {
+        "summary": "Get all flows",
+        "description": "Retrieve a paginated list of all marketing automation flows in your Klaviyo account. Flows are automated marketing campaigns that can include emails, SMS, and other messaging channels.",
+        "operationId": "get_flows",
+        "parameters": [
+          {
+            "name": "page[size]",
+            "in": "query",
+            "description": "Number of flows to return per page. Maximum is 50.",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 50,
+              "default": 50
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful",
+            "content": {
+              "application/vnd.api+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FlowsResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Error",
+            "content": {
+              "application/vnd.api+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error",
+            "content": {
+              "application/vnd.api+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "KlaviyoAPIKey": []
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "FlowsResponse": {
+        "type": "object",
+        "description": "Successful response containing a list of flows with related data",
+        "properties": {
+          "data": {
+            "type": "array",
+            "description": "Array of flow objects - these are the main flow records",
+            "items": {
+              "$ref": "#/components/schemas/Flow"
+            }
+          },
+          "links": {
+            "$ref": "#/components/schemas/PaginationLinks"
+          },
+          "included": {
+            "type": "array",
+            "description": "Additional related objects (flow-actions, tags) that are referenced in the data array",
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/FlowAction"
+                },
+                {
+                  "$ref": "#/components/schemas/Tag"
+                }
+              ]
+            }
+          }
+        },
+        "required": ["data", "links"]
+      },
+      "Flow": {
+        "type": "object",
+        "description": "A marketing automation flow that defines a series of automated messages",
+        "properties": {
+          "type": {
+            "type": "string",
+            "description": "Resource type - always 'flow' for flow objects",
+            "enum": ["flow"]
+          },
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the flow"
+          },
+          "attributes": {
+            "type": "object",
+            "description": "The core properties and data of the flow",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Human-readable name of the flow"
+              },
+              "status": {
+                "type": "string",
+                "description": "Current status of the flow (e.g., 'draft', 'live', 'paused')"
+              },
+              "archived": {
+                "type": "boolean",
+                "description": "Whether the flow has been archived (hidden from active view)"
+              },
+              "created": {
+                "type": "string",
+                "format": "date-time",
+                "description": "When the flow was created"
+              },
+              "updated": {
+                "type": "string",
+                "format": "date-time",
+                "description": "When the flow was last updated"
+              },
+              "trigger_type": {
+                "type": "string",
+                "description": "What event triggers the flow to start (e.g., 'Added to List', 'Placed Order')"
+              }
+            },
+            "required": ["name", "status", "archived", "created", "updated", "trigger_type"]
+          },
+          "links": {
+            "$ref": "#/components/schemas/SelfLink"
+          },
+          "relationships": {
+            "type": "object",
+            "description": "Related objects connected to this flow",
+            "properties": {
+              "flow-actions": {
+                "type": "object",
+                "description": "The individual steps/actions within the flow (emails, SMS, etc.)",
+                "properties": {
+                  "data": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/ResourceIdentifier"
+                    }
+                  },
+                  "links": {
+                    "$ref": "#/components/schemas/RelationshipLinks"
+                  }
+                }
+              },
+              "tags": {
+                "type": "object",
+                "description": "Tags used to categorize and organize the flow",
+                "properties": {
+                  "data": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/ResourceIdentifier"
+                    }
+                  },
+                  "links": {
+                    "$ref": "#/components/schemas/RelationshipLinks"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "required": ["type", "id", "attributes", "links", "relationships"]
+      },
+      "FlowAction": {
+        "type": "object",
+        "description": "An individual action within a flow (e.g., send email, send SMS)",
+        "properties": {
+          "type": {
+            "type": "string",
+            "description": "Resource type - always 'flow-action' for flow action objects",
+            "enum": ["flow-action"]
+          },
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the flow action"
+          },
+          "attributes": {
+            "type": "object",
+            "description": "Properties and configuration of the flow action",
+            "properties": {
+              "action_type": {
+                "type": "string",
+                "description": "Type of action (e.g., 'email', 'sms')"
+              },
+              "status": {
+                "type": "string",
+                "description": "Current status of the action"
+              },
+              "created": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "updated": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "settings": {
+                "type": "object",
+                "description": "Action-specific configuration settings"
+              },
+              "tracking_options": {
+                "type": "object",
+                "description": "Tracking and analytics settings for the action",
+                "properties": {
+                  "add_utm": {
+                    "type": "boolean",
+                    "description": "Whether to add UTM parameters to links"
+                  },
+                  "utm_params": {
+                    "type": "array",
+                    "description": "UTM parameters for tracking",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "name": {
+                          "type": "string",
+                          "description": "UTM parameter name (e.g., 'source', 'medium')"
+                        },
+                        "value": {
+                          "type": "string",
+                          "description": "UTM parameter value"
+                        }
+                      }
+                    }
+                  },
+                  "is_tracking_opens": {
+                    "type": "boolean",
+                    "description": "Whether to track email opens"
+                  },
+                  "is_tracking_clicks": {
+                    "type": "boolean",
+                    "description": "Whether to track link clicks"
+                  }
+                }
+              },
+              "send_options": {
+                "type": "object",
+                "description": "Settings controlling how messages are sent",
+                "properties": {
+                  "use_smart_sending": {
+                    "type": "boolean",
+                    "description": "Whether to use smart sending to avoid message fatigue"
+                  },
+                  "is_transactional": {
+                    "type": "boolean",
+                    "description": "Whether this is a transactional message"
+                  }
+                }
+              },
+              "badge_options": {
+                "type": "object",
+                "description": "Settings for message badges or indicators"
+              },
+              "render_options": {
+                "type": "object",
+                "description": "Settings for how messages are rendered and displayed",
+                "properties": {
+                  "shorten_links": {
+                    "type": "boolean",
+                    "description": "Whether to shorten links in the message"
+                  },
+                  "add_org_prefix": {
+                    "type": "boolean",
+                    "description": "Whether to add organization prefix"
+                  },
+                  "add_info_link": {
+                    "type": "boolean",
+                    "description": "Whether to add an information link"
+                  },
+                  "add_opt_out_language": {
+                    "type": "boolean",
+                    "description": "Whether to include unsubscribe/opt-out language"
+                  }
+                }
+              }
+            }
+          },
+          "links": {
+            "$ref": "#/components/schemas/SelfLink"
+          }
+        }
+      },
+      "Tag": {
+        "type": "object",
+        "description": "A tag used for categorizing and organizing flows",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["tag"],
+            "description": "Resource type - always 'tag' for tag objects"
+          },
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the tag"
+          },
+          "attributes": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "The name of the tag"
+              }
+            }
+          },
+          "links": {
+            "$ref": "#/components/schemas/SelfLink"
+          }
+        }
+      },
+      "ResourceIdentifier": {
+        "type": "object",
+        "description": "Minimal object that identifies another resource",
+        "properties": {
+          "type": {
+            "type": "string",
+            "description": "Type of the referenced resource"
+          },
+          "id": {
+            "type": "string",
+            "description": "ID of the referenced resource"
+          }
+        },
+        "required": ["type", "id"]
+      },
+      "SelfLink": {
+        "type": "object",
+        "description": "Link to the resource itself",
+        "properties": {
+          "self": {
+            "type": "string",
+            "description": "URL to this specific resource",
+            "format": "uri"
+          }
+        }
+      },
+      "RelationshipLinks": {
+        "type": "object",
+        "description": "Links for navigating relationships between resources",
+        "properties": {
+          "self": {
+            "type": "string",
+            "description": "Link to the relationship itself",
+            "format": "uri"
+          },
+          "related": {
+            "type": "string",
+            "description": "Link to the related resources",
+            "format": "uri"
+          }
+        }
+      },
+      "PaginationLinks": {
+        "type": "object",
+        "description": "Links for navigating through paginated results",
+        "properties": {
+          "self": {
+            "type": "string",
+            "description": "Link to the current page of results",
+            "format": "uri"
+          },
+          "first": {
+            "type": "string",
+            "description": "Link to the first page of results",
+            "format": "uri"
+          },
+          "last": {
+            "type": "string",
+            "description": "Link to the last page of results",
+            "format": "uri"
+          },
+          "prev": {
+            "type": "string",
+            "description": "Link to the previous page of results (null if on first page)",
+            "format": "uri",
+            "nullable": true
+          },
+          "next": {
+            "type": "string",
+            "description": "Link to the next page of results (null if on last page)",
+            "format": "uri",
+            "nullable": true
+          }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "description": "Standard error response format",
+        "properties": {
+          "errors": {
+            "type": "array",
+            "description": "Array of error objects",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "Unique identifier for this specific error occurrence"
+                },
+                "code": {
+                  "type": "string",
+                  "description": "Machine-readable error code"
+                },
+                "title": {
+                  "type": "string",
+                  "description": "Brief human-readable error summary"
+                },
+                "detail": {
+                  "type": "string",
+                  "description": "Detailed explanation of the error"
+                },
+                "source": {
+                  "type": "object",
+                  "description": "Where the error occurred",
+                  "properties": {
+                    "pointer": {
+                      "type": "string",
+                      "description": "JSON pointer to the field that caused the error"
+                    },
+                    "parameter": {
+                      "type": "string",
+                      "description": "Query parameter that caused the error"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "KlaviyoAPIKey": {
+        "type": "apiKey",
+        "name": "Authorization",
+        "in": "header",
+        "description": "Klaviyo private API key in the format: Klaviyo-API-Key {your-private-api-key}"
+      }
+    }
+  }
+}
