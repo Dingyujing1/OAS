@@ -21,13 +21,13 @@
       "description": "Production"
     }
   ],
-"paths": {
+  "paths": {
     "/api/flows": {
       "get": {
         "summary": "Get all flows",
-        "description":"Retrieve a paginated list of all marketing automation flows in your Klaviyo account. Flows are automated marketing campaigns that can include emails, SMS, and other messaging channels.",
+        "description": "Retrieve a paginated list of all marketing automation flows in your Klaviyo account. Flows are automated marketing campaigns that can include emails, SMS, and other messaging channels.",
         "operationId": "get_flows",
-         "parameters": [
+        "parameters": [
           {
             "name": "page[size]",
             "in": "query",
@@ -36,22 +36,22 @@
             "schema": {
               "type": "integer",
               "maximum": 50,
-              "default": 50#默认值
+              "default": 50
             }
           }
         ],
- "responses": {
+        "responses": {
           "200": {
             "description": "Successful",
             "content": {
               "application/vnd.api+json": {
                 "schema": {
-                  "$ref": "#/components/schemas/FlowsResponse"        
-                      ]
-                    }
-                  }
+                  "$ref": "#/components/schemas/FlowsResponse"
                 }
-           "400": {
+              }
+            }
+          },
+          "400": {
             "description": "Error",
             "content": {
               "application/vnd.api+json": {
@@ -71,18 +71,21 @@
               }
             }
           }
-        }，
- "security": [
+        },
+        "security": [
           {
             "KlaviyoAPIKey": []
           }
-        ],
- "components": {
-    "schema": {
-      "FlowsResponse": {#封装对象名
-        "type": "object"#字段类型名
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "FlowsResponse": {
+        "type": "object",
         "description": "Successful response containing a list of flows with related data",
-        "properties": {#success返回对象的结构
+        "properties": {
           "data": {
             "type": "array",
             "description": "Array of flow objects - these are the main flow records",
@@ -110,7 +113,7 @@
         },
         "required": ["data", "links"]
       },
- "Flow": {
+      "Flow": {
         "type": "object",
         "description": "A marketing automation flow that defines a series of automated messages",
         "properties": {
@@ -198,7 +201,7 @@
         },
         "required": ["type", "id", "attributes", "links", "relationships"]
       },
- "FlowAction": {
+      "FlowAction": {
         "type": "object",
         "description": "An individual action within a flow (e.g., send email, send SMS)",
         "properties": {
@@ -418,8 +421,8 @@
             "nullable": true
           }
         }
-      }
-    "ErrorResponse": {
+      },
+      "ErrorResponse": {
         "type": "object",
         "description": "Standard error response format",
         "properties": {
@@ -464,7 +467,8 @@
           }
         }
       }
-     "securitySchema":{ 
+    },
+    "securitySchemes": {
       "KlaviyoAPIKey": {
         "type": "apiKey",
         "name": "Authorization",
@@ -472,5 +476,5 @@
         "description": "Klaviyo private API key in the format: Klaviyo-API-Key {your-private-api-key}"
       }
     }
-    }
   }
+}
