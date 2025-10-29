@@ -1,0 +1,181 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Klaviyo Flow API",
+    "version": "2025-10-15",
+    "description": "The Klaviyo REST API.",
+    "contact": {
+      "name": "Klaviyo Developer Experience Team",
+      "email": "developers@klaviyo.com",
+      "url": "https://developers.klaviyo.com"
+    },
+    "termsOfService": "https://www.klaviyo.com/legal/api-terms",
+    "license": {
+      "name": "License",
+      "url": "https://www.klaviyo.com/legal"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://a.klaviyo.com",
+      "description": "Production"
+    }
+  ],
+  "paths": {
+    "/api/flows": {
+      "get": {
+        "summary": "Get all flows",
+        "description": "Retrieve a paginated list of all marketing automation flows in your Klaviyo account.",
+        "operationId": "get_flows",
+        "parameters": [
+          {
+            "name": "page[size]",
+            "in": "query",
+            "description": "Number of flows to return per page. Maximum is 50.",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 50,
+              "default": 50
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FlowsResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "KlaviyoAPIKey": []
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "FlowsResponse": {
+        "type": "object",
+        "description": "Successful response containing a list of flows with related data",
+        "properties": {
+          "data": {
+            "type": "array",
+            "description": "Array of flow objects",
+            "items": {
+              "$ref": "#/components/schemas/Flow"
+            }
+          },
+          "links": {
+            "$ref": "#/components/schemas/PaginationLinks"
+          }
+        },
+        "required": ["data", "links"]
+      },
+      "Flow": {
+        "type": "object",
+        "description": "A marketing automation flow",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["flow"]
+          },
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the flow"
+          },
+          "attributes": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Human-readable name of the flow"
+              },
+              "status": {
+                "type": "string",
+                "description": "Current status of the flow"
+              }
+            },
+            "required": ["name", "status"]
+          },
+          "links": {
+            "$ref": "#/components/schemas/SelfLink"
+          }
+        },
+        "required": ["type", "id", "attributes", "links"]
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "message": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "SelfLink": {
+        "type": "object",
+        "properties": {
+          "self": {
+            "type": "string",
+            "format": "uri"
+          }
+        }
+      },
+      "PaginationLinks": {
+        "type": "object",
+        "properties": {
+          "self": {
+            "type": "string",
+            "format": "uri"
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "KlaviyoAPIKey": {
+        "type": "apiKey",
+        "name": "Authorization",
+        "in": "header",
+        "description": "Klaviyo private API key in the format: Klaviyo-API-Key {your-private-api-key}"
+      }
+    }
+  }
+}
