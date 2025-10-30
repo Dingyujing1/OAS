@@ -1,0 +1,458 @@
+openapi: 3.0.3
+info:
+  title: Klaviyo Flows API
+  description: API for managing marketing automation flows in Klaviyo
+  version: 2025-10-15
+  contact:
+    name: Klaviyo API Support
+    url: https://www.klaviyo.com/contact
+  license:
+    name: Commercial
+    url: https://www.klaviyo.com/legal
+
+servers:
+  - url: https://a.klaviyo.com/api
+    description: Klaviyo production server
+
+paths:
+  /flows:
+    get:
+      summary: List all flows
+      description: Retrieve a paginated list of all flows in the account
+      operationId: getFlows
+      parameters:
+        - name: page[size]
+          in: query
+          description: Number of flows to return per page
+          schema:
+            type: integer
+            default: 50
+            maximum: 100
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: '#/components/schemas/FlowsResponse'
+        '400':
+          description: Bad request
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - Klaviyo-API-Key: []
+    post:
+      summary: Create a flow
+      description: Create a new marketing automation flow
+      operationId: createFlow
+      requestBody:
+        required: true
+        content:
+          application/vnd.api+json:
+            schema:
+              $ref: '#/components/schemas/CreateFlowRequest'
+      responses:
+        '201':
+          description: Flow created successfully
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: '#/components/schemas/FlowResponse'
+        '400':
+          description: Bad request
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - Klaviyo-API-Key: []
+
+components:
+  schemas:
+    FlowsResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Flow'
+        links:
+          $ref: '#/components/schemas/PaginationLinks'
+        included:
+          type: array
+          items:
+            oneOf:
+              - $ref: '#/components/schemas/FlowAction'
+              - $ref: '#/components/schemas/Tag'
+
+    FlowResponse:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/Flow'
+
+    CreateFlowRequest:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          $ref: '#/components/schemas/Flow'
+
+    ErrorResponse:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/Error'
+
+    Error:
+      type: object
+      properties:
+        id:
+          type: string
+        code:
+          type: string
+        title:
+          type: string
+        detail:
+          type: string
+        source:
+          $ref: '#/components/schemas/ErrorSource'
+
+    ErrorSource:
+      type: object
+      properties:
+        pointer:
+          type: string
+        parameter:
+          type: string
+
+    PaginationLinks:
+      type: object
+      properties:
+        self:
+          type: string
+        first:
+          type: string
+        last:
+          type: string
+        prev:
+          type: string
+        next:
+          type: string
+
+    Flow:
+      type: object
+      required:
+        - type
+        - id
+      properties:
+        type:
+          type: string
+          enum: [flow]
+        id:
+          type: string
+        attributes:
+          $ref: '#/components/schemas/FlowAttributes'
+        relationships:
+          $ref: '#/components/schemas/FlowRelationships'
+        links:
+          $ref: '#/components/schemas/SelfLink'
+
+    FlowAttributes:
+      type: object
+      properties:
+        name:
+          type: string
+        status:
+          type: string
+        archived:
+          type: boolean
+        created:
+          type: string
+          format: date-time
+        updated:
+          type: string
+          format: date-time
+        trigger_type:
+          type: string
+          enum: [Added to List]
+        definition:
+          $ref: '#/components/schemas/FlowDefinition'
+
+    FlowDefinition:
+      type: object
+      properties:
+        triggers:
+          type: array
+          items:
+            $ref: '#/components/schemas/Trigger'
+        profile_filter:
+          $ref: '#/components/schemas/ProfileFilter'
+        actions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Action'
+        entry_action_id:
+          type: string
+
+    Trigger:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [list, segment, metric, date, price-drop, low-inventory]
+        id:
+          type: string
+        trigger_filter:
+          $ref: '#/components/schemas/TriggerFilter'
+        # Additional trigger-specific properties would be defined here
+
+    ProfileFilter:
+      type: object
+      properties:
+        condition_groups:
+          type: array
+          items:
+            $ref: '#/components/schemas/ConditionGroup'
+
+    ConditionGroup:
+      type: object
+      properties:
+        conditions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Condition'
+
+    Condition:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: 
+            - profile-property
+            - profile-group-membership
+            - profile-region
+            - profile-postal-code-distance
+            - profile-predictive-analytics
+            - profile-marketing-consent
+            - profile-metric
+            - profile-sample
+            - profile-permissions
+            - profile-not-in-flow
+        # Condition-specific properties would be defined here
+
+    Action:
+      type: object
+      properties:
+        id:
+          type: string
+        temporary_id:
+          type: string
+        type:
+          type: string
+          enum:
+            - action-output-split
+            - back-in-stock-delay
+            - conditional-split
+            - content-experiment
+            - send-email
+            - send-mobile-push
+            - send-sms
+            - send-webhook
+            - send-internal-alert
+            - send-whatsapp
+            - time-delay
+            - trigger-split
+            - update-profile
+            - target-date
+            - countdown-delay
+            - ab-test
+            - internal-service
+            - code
+            - split
+            - branch
+            - list-update
+        links:
+          $ref: '#/components/schemas/ActionLinks'
+        data:
+          type: object
+
+    ActionLinks:
+      type: object
+      properties:
+        next:
+          oneOf:
+            - type: string
+            - type: array
+              items:
+                type: string
+        next_if_true:
+          type: string
+        next_if_false:
+          type: string
+
+    TriggerFilter:
+      type: object
+      properties:
+        condition_groups:
+          type: array
+          items:
+            $ref: '#/components/schemas/ConditionGroup'
+
+    FlowRelationships:
+      type: object
+      properties:
+        flow-actions:
+          $ref: '#/components/schemas/Relationship'
+        tags:
+          $ref: '#/components/schemas/Relationship'
+
+    Relationship:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/RelationshipData'
+        links:
+          $ref: '#/components/schemas/RelationshipLinks'
+
+    RelationshipData:
+      type: object
+      properties:
+        type:
+          type: string
+        id:
+          type: string
+
+    RelationshipLinks:
+      type: object
+      properties:
+        self:
+          type: string
+        related:
+          type: string
+
+    SelfLink:
+      type: object
+      properties:
+        self:
+          type: string
+
+    FlowAction:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [flow-action]
+        id:
+          type: string
+        attributes:
+          $ref: '#/components/schemas/FlowActionAttributes'
+        links:
+          $ref: '#/components/schemas/SelfLink'
+
+    FlowActionAttributes:
+      type: object
+      properties:
+        created:
+          type: string
+          format: date-time
+        updated:
+          type: string
+          format: date-time
+        definition:
+          type: object
+
+    Tag:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [tag]
+        id:
+          type: string
+        attributes:
+          $ref: '#/components/schemas/TagAttributes'
+        links:
+          $ref: '#/components/schemas/SelfLink'
+
+    TagAttributes:
+      type: object
+      properties:
+        name:
+          type: string
+
+  securitySchemes:
+    Klaviyo-API-Key:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: Use 'Klaviyo-API-Key your-private-api-key'
+
+  headers:
+    Revision:
+      schema:
+        type: string
+        enum: [2025-10-15]
+      description: API revision date
+
+  parameters:
+    PageSize:
+      name: page[size]
+      in: query
+      description: Number of resources to return per page
+      schema:
+        type: integer
+        default: 50
+        maximum: 100
+        minimum: 1
+
+  responses:
+    Unauthorized:
+      description: Authentication credentials were missing or incorrect
+      content:
+        application/vnd.api+json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Forbidden:
+      description: The request is not allowed
+      content:
+        application/vnd.api+json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFound:
+      description: The requested resource was not found
+      content:
+        application/vnd.api+json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
