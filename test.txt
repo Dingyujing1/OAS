@@ -21,6 +21,10 @@
       "description": "Production"
     }
   ],
+  "tags":{
+    -"name":"get flows",
+     "description": "Operations for managing marketing automation flows"
+      }
   "paths": {
     "/api/flows": {
       "get": {
