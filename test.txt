@@ -22,9 +22,9 @@
     }
   ],
   "tags":{
-    -"name":"get flows",
-     "description": "Operations for managing marketing automation flows"
-      }
+    - "name": "get flows",
+      "description": "Get flows from an account."
+  },
   "paths": {
     "/api/flows": {
       "get": {
